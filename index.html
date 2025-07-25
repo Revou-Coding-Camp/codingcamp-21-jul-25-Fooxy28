@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Todo List App</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1><i class="fas fa-tasks"></i> Todo List</h1>
+        </header>
+
+        <!-- Statistik dengan Progress Bar -->
+        <div class="stats-bar">
+            <div class="stats-left">
+                <div class="stat-item">
+                    <span class="stat-label">TOTAL TASKS</span>
+                    <span class="stat-number" id="totalTasks">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">COMPLETED</span>
+                    <span class="stat-number" id="completedTasks">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">PENDING</span>
+                    <span class="stat-number" id="pendingTasks">0</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">PROGRESS</span>
+                    <span class="stat-number" id="progressPercent">0%</span>
+                </div>
+            </div>
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+        </div>
+
+        <!-- Formulir untuk menambah todo -->
+        <div class="add-todo-section">
+            <div class="input-group">
+                <div class="input-wrapper">
+                    <input type="text" id="todoInput" placeholder="Add a new task..." maxlength="100" required>
+                    <div class="error-message" id="todoInputError"></div>
+                </div>
+                <div class="input-wrapper">
+                    <input type="date" id="dateInput" title="Pilih tanggal todo" required>
+                    <div class="error-message" id="dateInputError"></div>
+                </div>
+                <button id="addBtn" onclick="addTodo()">
+                    <i class="fas fa-plus"></i> ADD
+                </button>
+            </div>
+        </div>
+
+        <!-- Pencarian dan Kontrol -->
+        <div class="controls-bar">
+            <div class="search-section">
+                <div class="search-wrapper">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Search tasks..." onkeyup="searchTasks()">
+                </div>
+            </div>
+            
+            <div class="controls-right">
+                <select id="filterSelect" onchange="filterTodos()" title="Filter tasks">
+                    <option value="all">FILTER</option>
+                    <option value="all">All Tasks</option>
+                    <option value="completed">Completed</option>
+                    <option value="pending">Pending</option>
+                    <option value="today">Today</option>
+                    <option value="upcoming">Upcoming</option>
+                </select>
+                
+                <select id="sortSelect" onchange="sortTodos()" title="Sort tasks">
+                    <option value="created">SORT</option>
+                    <option value="created">Date Created</option>
+                    <option value="date">Due Date</option>
+                    <option value="name">Name</option>
+                    <option value="priority">Priority</option>
+                </select>
+                
+                <button id="deleteAllBtn" onclick="deleteAllTodos()" class="delete-all-btn">
+                    DELETE ALL
+                </button>
+            </div>
+        </div>
+
+        <!-- Daftar todo dalam format tabel -->
+        <div class="todo-table-container">
+            <div class="todo-table-header">
+                <div class="header-checkbox"></div>
+                <div class="header-task">TASK</div>
+                <div class="header-date">DUE DATE</div>
+                <div class="header-status">STATUS</div>
+                <div class="header-actions">ACTIONS</div>
+            </div>
+            
+            <div class="todo-table-body" id="todoTableBody">
+                <!-- Item todo akan ditambahkan di sini -->
+                
+                <!-- Pesan ketika tidak ada todo -->
+                <div class="empty-state" id="emptyState">
+                    <i class="fas fa-clipboard-list"></i>
+                    <p>No tasks found</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal konfirmasi -->
+    <div class="modal" id="confirmModal">
+        <div class="modal-content">
+            <h3>Confirm Action</h3>
+            <p id="confirmMessage">Are you sure?</p>
+            <div class="modal-buttons">
+                <button class="btn-cancel" onclick="closeModal()">Cancel</button>
+                <button class="btn-confirm" onclick="confirmAction()">Delete</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal untuk menambah subtask -->
+    <div class="modal" id="subtaskModal">
+        <div class="modal-content">
+            <h3>Add Subtask</h3>
+            <input type="text" id="subtaskInput" placeholder="Enter subtask name..." maxlength="100">
+            <input type="date" id="subtaskDateInput" title="Select subtask due date">
+            <div class="modal-buttons">
+                <button class="btn-cancel" onclick="closeSubtaskModal()">Cancel</button>
+                <button class="btn-confirm" onclick="addSubtask()">Add Subtask</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal untuk mengedit task/subtask -->
+    <div class="modal" id="editModal">
+        <div class="modal-content">
+            <h3 id="editModalTitle">Edit Task</h3>
+            <input type="text" id="editNameInput" placeholder="Enter task name..." maxlength="100">
+            <input type="date" id="editDateInput" title="Select due date">
+            <div class="modal-buttons">
+                <button class="btn-cancel" onclick="closeEditModal()">Cancel</button>
+                <button class="btn-confirm" onclick="confirmEdit()">Save Changes</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/script.js"></script>
+</body>
+</html>
