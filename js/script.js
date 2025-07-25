@@ -30,12 +30,67 @@ function initializeApp() {
     const today = new Date().toISOString().split('T')[0];
     document.getElementById('dateInput').value = today;
     
+    // Event listener untuk todo input
     document.getElementById('todoInput').addEventListener('keypress', function(e) {
         if (e.key === 'Enter') {
             addTodo();
         }
     });
     
+    // Event listener untuk subtask input
+    document.getElementById('subtaskInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            addSubtask();
+        }
+    });
+    
+    // Event listener untuk edit modal
+    document.getElementById('editNameInput').addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            confirmEdit();
+        }
+    });
+    
+    // Event listener untuk buttons - remove existing first
+    const addBtn = document.getElementById('addBtn');
+    const addSubtaskBtn = document.getElementById('addSubtaskBtn');
+    const confirmEditBtn = document.getElementById('confirmEditBtn');
+    const deleteAllBtn = document.getElementById('deleteAllBtn');
+    const filterSelect = document.getElementById('filterSelect');
+    const sortSelect = document.getElementById('sortSelect');
+    
+    // Remove existing event listeners by cloning (for buttons that might have duplicates)
+    const newAddSubtaskBtn = addSubtaskBtn.cloneNode(true);
+    const newConfirmEditBtn = confirmEditBtn.cloneNode(true);
+    addSubtaskBtn.parentNode.replaceChild(newAddSubtaskBtn, addSubtaskBtn);
+    confirmEditBtn.parentNode.replaceChild(newConfirmEditBtn, confirmEditBtn);
+    
+    // Add event listeners
+    addBtn.addEventListener('click', addTodo);
+    document.getElementById('addSubtaskBtn').addEventListener('click', addSubtask);
+    document.getElementById('confirmEditBtn').addEventListener('click', confirmEdit);
+    deleteAllBtn.addEventListener('click', deleteAllTodos);
+    filterSelect.addEventListener('change', filterTodos);
+    sortSelect.addEventListener('change', sortTodos);
+    
+    // Event listener untuk modal buttons
+    document.getElementById('closeModalBtn').addEventListener('click', closeModal);
+    document.getElementById('confirmActionBtn').addEventListener('click', confirmAction);
+    document.getElementById('closeSubtaskModalBtn').addEventListener('click', closeSubtaskModal);
+    document.getElementById('closeEditModalBtn').addEventListener('click', closeEditModal);
+    
+    // Event listener untuk modal background click
+    document.getElementById('confirmModal').addEventListener('click', function(e) {
+        if (e.target === this) closeModal();
+    });
+    document.getElementById('subtaskModal').addEventListener('click', function(e) {
+        if (e.target === this) closeSubtaskModal();
+    });
+    document.getElementById('editModal').addEventListener('click', function(e) {
+        if (e.target === this) closeEditModal();
+    });
+    
+    // Event listener untuk form validation
     document.getElementById('todoInput').addEventListener('input', validateTodoInput);
     document.getElementById('dateInput').addEventListener('change', validateDateInput);
     document.getElementById('todoInput').addEventListener('focus', clearError);
@@ -342,6 +397,12 @@ function toggleSubtask(parentId, subtaskId) {
  * @param {number} id - ID todo yang akan dihapus
  */
 function deleteTodo(id) {
+    // Prevent multiple calls
+    if (deleteTodo.isProcessing) {
+        return;
+    }
+    deleteTodo.isProcessing = true;
+    
     const todo = todos.find(t => t.id === id);
     if (todo) {
         showConfirmModal(
@@ -351,8 +412,11 @@ function deleteTodo(id) {
                 saveTodos();
                 updateStats();
                 renderTodos();
+                deleteTodo.isProcessing = false;
             }
         );
+    } else {
+        deleteTodo.isProcessing = false;
     }
 }
 
@@ -362,6 +426,12 @@ function deleteTodo(id) {
  * @param {number} subtaskId - ID subtask yang akan dihapus
  */
 function deleteSubtask(parentId, subtaskId) {
+    // Prevent multiple calls
+    if (deleteSubtask.isProcessing) {
+        return;
+    }
+    deleteSubtask.isProcessing = true;
+    
     const parentIndex = todos.findIndex(todo => todo.id === parentId);
     if (parentIndex !== -1) {
         const subtask = todos[parentIndex].subtasks.find(sub => sub.id === subtaskId);
@@ -373,9 +443,14 @@ function deleteSubtask(parentId, subtaskId) {
                     saveTodos();
                     updateStats();
                     renderTodos();
+                    deleteSubtask.isProcessing = false;
                 }
             );
+        } else {
+            deleteSubtask.isProcessing = false;
         }
+    } else {
+        deleteSubtask.isProcessing = false;
     }
 }
 
@@ -384,8 +459,15 @@ function deleteSubtask(parentId, subtaskId) {
  * Menampilkan dialog konfirmasi sebelum menghapus semua tugas
  */
 function deleteAllTodos() {
+    // Prevent multiple calls
+    if (deleteAllTodos.isProcessing) {
+        return;
+    }
+    deleteAllTodos.isProcessing = true;
+    
     if (todos.length === 0) {
         showSuccessMessage('No tasks to delete!');
+        deleteAllTodos.isProcessing = false;
         return;
     }
     
@@ -397,6 +479,7 @@ function deleteAllTodos() {
             updateStats();
             renderTodos();
             showSuccessMessage('All tasks deleted!');
+            deleteAllTodos.isProcessing = false;
         }
     );
 }
@@ -418,23 +501,9 @@ function editTodo(id) {
         const modal = document.getElementById('editModal');
         modal.classList.add('show');
         
-        modal.addEventListener('click', function(e) {
-            if (e.target === modal) {
-                closeEditModal();
-            }
-        });
-        
         const nameInput = document.getElementById('editNameInput');
         nameInput.focus();
         nameInput.select();
-        
-        const handleEnterKey = function(e) {
-            if (e.key === 'Enter') {
-                confirmEdit();
-                nameInput.removeEventListener('keypress', handleEnterKey);
-            }
-        };
-        nameInput.addEventListener('keypress', handleEnterKey);
     }
 }
 
@@ -450,12 +519,6 @@ function showSubtaskModal(parentId) {
     input.value = '';
     modal.classList.add('show');
     input.focus();
-    
-    input.addEventListener('keypress', function(e) {
-        if (e.key === 'Enter') {
-            addSubtask();
-        }
-    });
 }
 
 /**
@@ -470,6 +533,9 @@ function closeSubtaskModal() {
     input.value = '';
     dateInput.value = '';
     currentParentId = null;
+    
+    // Reset processing flags
+    addSubtask.isProcessing = false;
 }
 
 /**
@@ -477,6 +543,12 @@ function closeSubtaskModal() {
  * Membuat dan menyimpan subtask dengan validasi
  */
 function addSubtask() {
+    // Prevent multiple calls by checking if we're already processing
+    if (addSubtask.isProcessing) {
+        return;
+    }
+    addSubtask.isProcessing = true;
+    
     const input = document.getElementById('subtaskInput');
     const dateInput = document.getElementById('subtaskDateInput');
     const subtaskName = input.value.trim();
@@ -484,6 +556,7 @@ function addSubtask() {
     
     if (subtaskName === '') {
         showSuccessMessage('Subtask name cannot be empty!');
+        addSubtask.isProcessing = false;
         return;
     }
     
@@ -506,6 +579,8 @@ function addSubtask() {
             showSuccessMessage('Subtask added!');
         }
     }
+    
+    addSubtask.isProcessing = false;
 }
 
 /**
@@ -601,14 +676,14 @@ function renderTodos() {
     const filteredTodos = getFilteredTodos();
     
     if (filteredTodos.length === 0) {
-        const todoRows = todoTableBody.querySelectorAll('.todo-row');
+        const todoRows = todoTableBody.querySelectorAll('.todo-row, .subtask-row');
         todoRows.forEach(row => row.remove());
         emptyState.classList.add('show');
         return;
     }
     
     emptyState.classList.remove('show');
-    const todoRows = todoTableBody.querySelectorAll('.todo-row');
+    const todoRows = todoTableBody.querySelectorAll('.todo-row, .subtask-row');
     todoRows.forEach(row => row.remove());
     
     const todoHtml = filteredTodos.map(todo => generateTodoHTML(todo)).join('');
@@ -824,23 +899,9 @@ function editSubtask(todoId, subtaskId) {
             const modal = document.getElementById('editModal');
             modal.classList.add('show');
             
-            modal.addEventListener('click', function(e) {
-                if (e.target === modal) {
-                    closeEditModal();
-                }
-            });
-            
             const nameInput = document.getElementById('editNameInput');
             nameInput.focus();
             nameInput.select();
-            
-            const handleEnterKey = function(e) {
-                if (e.key === 'Enter') {
-                    confirmEdit();
-                    nameInput.removeEventListener('keypress', handleEnterKey);
-                }
-            };
-            nameInput.addEventListener('keypress', handleEnterKey);
         }
     }
 }
@@ -906,12 +967,6 @@ function showConfirmModal(message, callback) {
     messageElement.textContent = message;
     confirmCallback = callback;
     modal.classList.add('show');
-    
-    modal.addEventListener('click', function(e) {
-        if (e.target === modal) {
-            closeModal();
-        }
-    });
 }
 
 /**
@@ -921,6 +976,11 @@ function closeModal() {
     const modal = document.getElementById('confirmModal');
     modal.classList.remove('show');
     confirmCallback = null;
+    
+    // Reset processing flags
+    if (typeof deleteTodo !== 'undefined') deleteTodo.isProcessing = false;
+    if (typeof deleteSubtask !== 'undefined') deleteSubtask.isProcessing = false;
+    if (typeof deleteAllTodos !== 'undefined') deleteAllTodos.isProcessing = false;
 }
 
 /**
@@ -959,6 +1019,9 @@ function closeEditModal() {
     document.getElementById('editNameInput').value = '';
     document.getElementById('editDateInput').value = '';
     editData = { type: null, todoId: null, subtaskId: null };
+    
+    // Reset processing flags
+    confirmEdit.isProcessing = false;
 }
 
 /**
@@ -966,11 +1029,18 @@ function closeEditModal() {
  * Memvalidasi input dan memperbarui todo atau subtask yang sesuai
  */
 function confirmEdit() {
+    // Prevent multiple calls by checking if we're already processing
+    if (confirmEdit.isProcessing) {
+        return;
+    }
+    confirmEdit.isProcessing = true;
+    
     const newName = document.getElementById('editNameInput').value.trim();
     const newDate = document.getElementById('editDateInput').value;
     
     if (!newName) {
         showSuccessMessage('Name cannot be empty!');
+        confirmEdit.isProcessing = false;
         return;
     }
     
@@ -980,6 +1050,7 @@ function confirmEdit() {
             todos[todoIndex].name = newName;
             todos[todoIndex].date = newDate;
             saveTodos();
+            updateStats();
             renderTodos();
             showSuccessMessage('Task updated successfully!');
         }
@@ -991,6 +1062,7 @@ function confirmEdit() {
                 subtask.name = newName;
                 subtask.date = newDate;
                 saveTodos();
+                updateStats();
                 renderTodos();
                 showSuccessMessage('Subtask updated successfully!');
             }
@@ -998,4 +1070,5 @@ function confirmEdit() {
     }
     
     closeEditModal();
+    confirmEdit.isProcessing = false;
 }

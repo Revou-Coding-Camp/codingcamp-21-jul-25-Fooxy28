@@ -49,7 +49,7 @@
                     <input type="date" id="dateInput" title="Pilih tanggal todo" required>
                     <div class="error-message" id="dateInputError"></div>
                 </div>
-                <button id="addBtn" onclick="addTodo()">
+                <button id="addBtn">
                     <i class="fas fa-plus"></i> ADD
                 </button>
             </div>
@@ -60,12 +60,12 @@
             <div class="search-section">
                 <div class="search-wrapper">
                     <i class="fas fa-search"></i>
-                    <input type="text" id="searchInput" placeholder="Search tasks..." onkeyup="searchTasks()">
+                    <input type="text" id="searchInput" placeholder="Search tasks...">
                 </div>
             </div>
             
             <div class="controls-right">
-                <select id="filterSelect" onchange="filterTodos()" title="Filter tasks">
+                <select id="filterSelect" title="Filter tasks">
                     <option value="all">FILTER</option>
                     <option value="all">All Tasks</option>
                     <option value="completed">Completed</option>
@@ -74,7 +74,7 @@
                     <option value="upcoming">Upcoming</option>
                 </select>
                 
-                <select id="sortSelect" onchange="sortTodos()" title="Sort tasks">
+                <select id="sortSelect" title="Sort tasks">
                     <option value="created">SORT</option>
                     <option value="created">Date Created</option>
                     <option value="date">Due Date</option>
@@ -82,7 +82,7 @@
                     <option value="priority">Priority</option>
                 </select>
                 
-                <button id="deleteAllBtn" onclick="deleteAllTodos()" class="delete-all-btn">
+                <button id="deleteAllBtn" class="delete-all-btn">
                     DELETE ALL
                 </button>
             </div>
@@ -116,8 +116,8 @@
             <h3>Confirm Action</h3>
             <p id="confirmMessage">Are you sure?</p>
             <div class="modal-buttons">
-                <button class="btn-cancel" onclick="closeModal()">Cancel</button>
-                <button class="btn-confirm" onclick="confirmAction()">Delete</button>
+                <button class="btn-cancel" id="closeModalBtn">Cancel</button>
+                <button class="btn-confirm" id="confirmActionBtn">Delete</button>
             </div>
         </div>
     </div>
@@ -129,8 +129,8 @@
             <input type="text" id="subtaskInput" placeholder="Enter subtask name..." maxlength="100">
             <input type="date" id="subtaskDateInput" title="Select subtask due date">
             <div class="modal-buttons">
-                <button class="btn-cancel" onclick="closeSubtaskModal()">Cancel</button>
-                <button class="btn-confirm" onclick="addSubtask()">Add Subtask</button>
+                <button class="btn-cancel" id="closeSubtaskModalBtn">Cancel</button>
+                <button class="btn-confirm" id="addSubtaskBtn">Add Subtask</button>
             </div>
         </div>
     </div>
@@ -142,8 +142,8 @@
             <input type="text" id="editNameInput" placeholder="Enter task name..." maxlength="100">
             <input type="date" id="editDateInput" title="Select due date">
             <div class="modal-buttons">
-                <button class="btn-cancel" onclick="closeEditModal()">Cancel</button>
-                <button class="btn-confirm" onclick="confirmEdit()">Save Changes</button>
+                <button class="btn-cancel" id="closeEditModalBtn">Cancel</button>
+                <button class="btn-confirm" id="confirmEditBtn">Save Changes</button>
             </div>
         </div>
     </div>
